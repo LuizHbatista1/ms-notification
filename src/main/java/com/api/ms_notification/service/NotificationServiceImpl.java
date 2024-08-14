@@ -7,6 +7,11 @@ import com.api.ms_notification.repositories.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 @Service
 public class NotificationServiceImpl implements NotificationService{
 
@@ -19,10 +24,11 @@ public class NotificationServiceImpl implements NotificationService{
 
     }
 
-    @Override
-    public Notification findNotificationById(Long notificationId) {
 
-        return this.notificationRepository.findById(notificationId).orElseThrow(()-> new RuntimeException());
+    @Override
+    public Optional<Notification> findNotificationById(Long notificationId) {
+
+        return notificationRepository.findById(notificationId);
 
     }
 
@@ -44,6 +50,44 @@ public class NotificationServiceImpl implements NotificationService{
     public void saveNotification(Notification notification) {
 
         this.notificationRepository.save(notification);
+
+    }
+
+    @Override
+    public void cancelNotification(Long notificationId) {
+
+        var notification = findNotificationById(notificationId);
+
+        if(notification.isPresent()){
+
+            notification.get().setStatus(Status.Values.CANCELED.toStatus());
+            notificationRepository.save(notification.get());
+
+        }
+    }
+
+    @Override
+    public void checkAndSenderNotification(LocalDateTime dateTime) {
+
+        var notifications = notificationRepository.findByStatusInAndAndDateTime(List.of(
+                Status.Values.PENDING.toStatus(),
+                Status.Values.ERROR.toStatus()),dateTime
+        );
+
+        notifications.forEach(sendNotification());
+
+    }
+
+    private Consumer<Notification>sendNotification(){
+
+        return n -> {
+
+            // send notification
+
+            n.setStatus(Status.Values.SUCESS.toStatus());
+            notificationRepository.save(n);
+
+        };
 
     }
 }

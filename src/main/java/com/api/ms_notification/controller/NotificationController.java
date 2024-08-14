@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping
 
@@ -30,10 +32,18 @@ public class NotificationController {
     }
 
     @GetMapping("/apiV1/notification/{notificationId}")
-    public ResponseEntity<Notification>findAllNotificationsById(@PathVariable Long notificationId ){
+    public ResponseEntity<Optional<Notification>>findAllNotificationsById(@PathVariable Long notificationId ){
 
-        Notification newNotifications = notificationService.findNotificationById(notificationId);
+        Optional<Notification> newNotifications = notificationService.findNotificationById(notificationId);
         return new ResponseEntity<>(newNotifications , HttpStatus.OK);
+
+    }
+
+    @PutMapping("/apiV1/notification/{notificationId}")
+    public ResponseEntity<Void>cancelNotificationById(@PathVariable Long notificationId){
+
+        notificationService.cancelNotification(notificationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
     }
 
